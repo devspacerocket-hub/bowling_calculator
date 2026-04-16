@@ -5,6 +5,51 @@ export function normalizeRoll(value: RollValue | null | undefined): number {
   return value;
 }
 
+export function generateRandomGame(): Frame[] {
+  const frames: Frame[] = [];
+  
+  const getRandomRoll = (max: number): RollValue => {
+    if (Math.random() < 0.05) return 'F'; // 5% 확률로 파울
+    return Math.floor(Math.random() * (max + 1));
+  };
+
+  for (let i = 0; i < 9; i++) {
+    const first = getRandomRoll(10);
+    if (first === 10) {
+      frames.push({ first: 10, second: null });
+    } else {
+      const firstNum = first === 'F' ? 0 : first;
+      const second = getRandomRoll(10 - firstNum);
+      frames.push({ first, second });
+    }
+  }
+
+  // 10프레임
+  const first10 = getRandomRoll(10);
+  const first10Num = first10 === 'F' ? 0 : first10;
+  let second10: RollValue | null = null;
+  let third10: RollValue | null = null;
+
+  if (first10 === 10) {
+    second10 = getRandomRoll(10);
+    const second10Num = second10 === 'F' ? 0 : second10;
+    if (second10 === 10) {
+      third10 = getRandomRoll(10);
+    } else {
+      third10 = getRandomRoll(10 - second10Num);
+    }
+  } else {
+    second10 = getRandomRoll(10 - first10Num);
+    const second10Num = second10 === 'F' ? 0 : second10;
+    if (first10Num + second10Num === 10) {
+      third10 = getRandomRoll(10);
+    }
+  }
+  
+  frames.push({ first: first10, second: second10, third: third10 });
+  return frames;
+}
+
 function getNextRolls(frames: Frame[], frameIndex: number, count: number): RollValue[] {
   const rolls: RollValue[] = [];
   for (let i = frameIndex + 1; i < 10; i++) {
