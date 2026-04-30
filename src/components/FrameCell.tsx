@@ -1,6 +1,6 @@
 import React from 'react';
 import { motion } from 'motion/react';
-import { Frame, FrameExplanation, RollValue } from '../types/bowling';
+import { AppMode, Frame, FrameExplanation, RollValue, ScoringMode } from '../types/bowling';
 import { normalizeRoll } from '../lib/bowling';
 
 interface FrameCellProps {
@@ -11,10 +11,12 @@ interface FrameCellProps {
   isSelected: boolean;
   onSelect: () => void;
   onChangeRoll: (rollIndex: 'first' | 'second' | 'third', value: RollValue | null) => void;
-  isQuizMode?: boolean;
+  scoringMode: ScoringMode;
+  appMode: AppMode;
   userAnswer?: string;
   onChangeUserAnswer?: (val: string) => void;
   quizStatus?: 'playing' | 'submitted' | 'revealed';
+  isGradeCorrect?: boolean;
 }
 
 export default function FrameCell({
@@ -24,12 +26,15 @@ export default function FrameCell({
   isSelected,
   onSelect,
   onChangeRoll,
-  isQuizMode = false,
+  scoringMode,
+  appMode,
   userAnswer = '',
   onChangeUserAnswer,
   quizStatus = 'playing',
+  isGradeCorrect = false,
 }: FrameCellProps) {
   const is10th = frameIndex === 9;
+  const isQuizMode = appMode === 'quiz';
 
   // 입력 가능한 옵션 생성 로직
   const getOptions = (max: number) => {
@@ -76,7 +81,7 @@ export default function FrameCell({
   let thirdOptions: (RollValue | '')[] = [];
   let thirdDisabled = true;
 
-  if (is10th && frame.first !== null && frame.second !== null) {
+  if (is10th && scoringMode === 'traditional' && frame.first !== null && frame.second !== null) {
     if (firstNum + secondNum >= 10) {
       thirdDisabled = false;
       if (frame.second === 10 || firstNum + secondNum === 10) {
@@ -146,7 +151,7 @@ export default function FrameCell({
             );
           })}
         </select>
-        {is10th && (
+        {is10th && scoringMode === 'traditional' && (
           <>
             <div className="w-px bg-gray-300" />
             <select
@@ -184,13 +189,13 @@ export default function FrameCell({
                 quizStatus === 'playing' 
                   ? 'bg-white border-purple-300 focus:border-purple-500 text-purple-700' 
                   : (quizStatus === 'submitted' || quizStatus === 'revealed')
-                    ? (parseInt(userAnswer, 10) === explanation.cumulativeScore
+                    ? (isGradeCorrect
                         ? 'bg-green-100 border-green-500 text-green-700'
                         : 'bg-red-100 border-red-500 text-red-700')
                     : ''
               }`}
             />
-            {quizStatus === 'revealed' && parseInt(userAnswer, 10) !== explanation.cumulativeScore && (
+            {quizStatus === 'revealed' && !isGradeCorrect && explanation.cumulativeScore !== null && (
               <motion.div
                 initial={{ opacity: 0, y: -5 }}
                 animate={{ opacity: 1, y: 0 }}

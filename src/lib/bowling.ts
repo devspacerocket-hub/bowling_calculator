@@ -1,53 +1,8 @@
-import { Frame, FrameExplanation, RollValue } from '../types/bowling';
+import { Frame, FrameExplanation, RollValue, ScoringMode } from '../types/bowling';
 
 export function normalizeRoll(value: RollValue | null | undefined): number {
   if (value === 'F' || value === null || value === undefined) return 0;
   return value;
-}
-
-export function generateRandomGame(): Frame[] {
-  const frames: Frame[] = [];
-  
-  const getRandomRoll = (max: number): RollValue => {
-    if (Math.random() < 0.05) return 'F'; // 5% 확률로 파울
-    return Math.floor(Math.random() * (max + 1));
-  };
-
-  for (let i = 0; i < 9; i++) {
-    const first = getRandomRoll(10);
-    if (first === 10) {
-      frames.push({ first: 10, second: null });
-    } else {
-      const firstNum = first === 'F' ? 0 : first;
-      const second = getRandomRoll(10 - firstNum);
-      frames.push({ first, second });
-    }
-  }
-
-  // 10프레임
-  const first10 = getRandomRoll(10);
-  const first10Num = first10 === 'F' ? 0 : first10;
-  let second10: RollValue | null = null;
-  let third10: RollValue | null = null;
-
-  if (first10 === 10) {
-    second10 = getRandomRoll(10);
-    const second10Num = second10 === 'F' ? 0 : second10;
-    if (second10 === 10) {
-      third10 = getRandomRoll(10);
-    } else {
-      third10 = getRandomRoll(10 - second10Num);
-    }
-  } else {
-    second10 = getRandomRoll(10 - first10Num);
-    const second10Num = second10 === 'F' ? 0 : second10;
-    if (first10Num + second10Num === 10) {
-      third10 = getRandomRoll(10);
-    }
-  }
-  
-  frames.push({ first: first10, second: second10, third: third10 });
-  return frames;
 }
 
 function getNextRolls(frames: Frame[], frameIndex: number, count: number): RollValue[] {
@@ -76,7 +31,72 @@ function getNextRolls(frames: Frame[], frameIndex: number, count: number): RollV
   return rolls;
 }
 
-export function calculateScores(frames: Frame[]): FrameExplanation[] {
+export function calculateScores(frames: Frame[], mode: ScoringMode): FrameExplanation[] {
+  if (mode === 'asian-games') {
+    return calculateAsianGameScores(frames);
+  }
+  return calculateTraditionalScores(frames);
+}
+
+function calculateAsianGameScores(frames: Frame[]): FrameExplanation[] {
+  const explanations: FrameExplanation[] = [];
+  let cumulative = 0;
+
+  for (let i = 0; i < 10; i++) {
+    const frame = frames[i];
+    const firstNum = normalizeRoll(frame.first);
+    const secondNum = normalizeRoll(frame.second);
+
+    let type: FrameExplanation['type'] = 'pending';
+    let shortText = '계산 대기';
+    let formula = '입력 대기 중';
+    let frameScore: number | null = null;
+
+    if (frame.first === null) {
+      explanations.push({ frameIndex: i, type, shortText, formula, frameScore, cumulativeScore: null });
+      continue;
+    }
+
+    if (firstNum === 10) {
+      type = 'strike';
+      frameScore = 30;
+      formula = `스트라이크: 30점`;
+      shortText = `스트라이크 (30점)`;
+    } else if (frame.second !== null) {
+      if (firstNum + secondNum === 10) {
+        type = 'spare';
+        frameScore = 10 + firstNum;
+        formula = `스페어: 10 + 첫 투구(${firstNum}) = ${frameScore}점`;
+        shortText = `스페어 (${frameScore}점)`;
+      } else {
+        type = 'open';
+        frameScore = firstNum + secondNum;
+        formula = `${frame.first} + ${frame.second} = ${frameScore}`;
+        shortText = `오픈 (${frameScore}점)`;
+      }
+    } else {
+      shortText = '계산 대기';
+      formula = `${frame.first} + 다음 투구 대기`;
+    }
+
+    if (frameScore !== null) {
+      cumulative += frameScore;
+    }
+
+    explanations.push({
+      frameIndex: i,
+      type,
+      shortText,
+      formula,
+      frameScore,
+      cumulativeScore: frameScore !== null ? cumulative : null,
+    });
+  }
+
+  return explanations;
+}
+
+function calculateTraditionalScores(frames: Frame[]): FrameExplanation[] {
   const explanations: FrameExplanation[] = [];
   let cumulative = 0;
 

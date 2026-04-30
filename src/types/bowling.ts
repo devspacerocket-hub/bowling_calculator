@@ -1,5 +1,8 @@
 export type RollValue = number | 'F';
 
+export type ScoringMode = 'traditional' | 'asian-games';
+export type AppMode = 'input' | 'quiz';
+
 export type Frame = {
   first: RollValue | null;
   second: RollValue | null;
