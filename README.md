@@ -1,20 +1,2 @@
-<div align="center">
-<img width="1200" height="475" alt="GHBanner" src="https://github.com/user-attachments/assets/0aa67016-6eaf-458a-adb2-6e31a0763ed6" />
-</div>
-
-# Run and deploy your AI Studio app
-
-This contains everything you need to run your app locally.
-
-View your app in AI Studio: https://ai.studio/apps/931da7a9-1067-4430-b3a2-291f7d866356
-
-## Run Locally
-
-**Prerequisites:**  Node.js
-
-
-1. Install dependencies:
-   `npm install`
-2. Set the `GEMINI_API_KEY` in [.env.local](.env.local) to your Gemini API key
-3. Run the app:
-   `npm run dev`
+서울과학기술대학교 볼링 강의 수강하는 분들이 중간 시험 대비를 원활하게 할 수 있도록 만든 프로그램입니다.
+중간 필기 시험에서 출제되는 요소인 볼링 점수 계산 방법을 습득할 수 있도록 제작되었으며, 점수 계산 방식은 두 종류로 나뉩니다.
